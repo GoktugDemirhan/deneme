@@ -1,8 +1,11 @@
 package com.goktug.cuzdanim
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -14,6 +17,7 @@ import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.webkit.WebViewAssetLoader
 import java.io.File
@@ -22,6 +26,26 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var web: WebView
     private var fileCallback: ValueCallback<Array<Uri>>? = null
+
+    private var askedNotif = false
+    private val notifPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (!granted) {
+            web.evaluateJavascript(
+                "typeof toast==='function'&&toast('Bildirim izni verilmedi: hatırlatıcılar görünmeyecek. Ayarlar > Uygulamalar > Cüzdanım > Bildirimler')",
+                null
+            )
+        }
+    }
+
+    private fun ensureNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
+            !askedNotif
+        ) {
+            askedNotif = true
+            notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     private val pickFile = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         fileCallback?.onReceiveValue(if (uri != null) arrayOf(uri) else null)
@@ -84,7 +108,8 @@ class MainActivity : ComponentActivity() {
         })
 
         if (savedInstanceState == null) {
-            web.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+            val start = if (intent?.getStringExtra("openTab") == "todo") "#todo" else ""
+            web.loadUrl("https://appassets.androidplatform.net/assets/www/index.html$start")
         } else {
             web.restoreState(savedInstanceState)
         }
@@ -95,7 +120,22 @@ class MainActivity : ComponentActivity() {
         web.saveState(outState)
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getStringExtra("openTab") == "todo") {
+            web.evaluateJavascript("try{tab='todo';render();}catch(e){}", null)
+        }
+    }
+
     inner class Bridge {
+        @JavascriptInterface
+        fun setReminders(json: String) {
+            runOnUiThread {
+                runCatching { Reminders.reschedule(this@MainActivity, json) }
+                if (json.length > 2) ensureNotificationPermission()
+            }
+        }
+
         @JavascriptInterface
         fun shareBackup(json: String) {
             runOnUiThread {
