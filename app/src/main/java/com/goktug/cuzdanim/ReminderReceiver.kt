@@ -21,6 +21,9 @@ class ReminderReceiver : BroadcastReceiver() {
         val title = intent.getStringExtra("title") ?: "Hatırlatıcı"
         val note = intent.getStringExtra("note").orEmpty()
 
+        // Tekrarlı hatırlatıcılar için bir sonrakini hemen kur (uygulama kapalı olsa da).
+        runCatching { Reminders.reschedule(context, null) }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
             != PackageManager.PERMISSION_GRANTED

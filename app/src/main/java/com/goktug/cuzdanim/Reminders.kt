@@ -9,6 +9,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import org.json.JSONArray
+import java.util.Calendar
 
 /** Yapılacaklar hatırlatıcılarını telefonun alarm sistemine kurar. */
 object Reminders {
@@ -36,7 +37,7 @@ object Reminders {
         val now = System.currentTimeMillis()
         for (i in 0 until list.length()) {
             val o = list.optJSONObject(i) ?: continue
-            val time = o.optLong("time", 0L)
+            val time = nextTime(o.optLong("time", 0L), o.optString("repeat", ""), now)
             if (time <= now) continue
             val pi = pendingIntent(ctx, o.optString("id"), o.optString("title"), o.optString("note"))
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
@@ -45,6 +46,42 @@ object Reminders {
                 am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pi)
             }
         }
+    }
+
+    private val FIXED = mapOf("15m" to 900_000L, "30m" to 1_800_000L, "1h" to 3_600_000L, "3h" to 10_800_000L)
+
+    /** k. tekrarın zamanı (k = 0 ilk hatırlatma). Aylıkta ayın son gününe sabitlenir. */
+    private fun occAt(base: Long, repeat: String, k: Int): Long {
+        FIXED[repeat]?.let { return base + it * k }
+        val c = Calendar.getInstance().apply { timeInMillis = base }
+        when (repeat) {
+            "1d" -> c.add(Calendar.DAY_OF_YEAR, k)
+            "1w" -> c.add(Calendar.DAY_OF_YEAR, 7 * k)
+            "1M" -> {
+                val day = c.get(Calendar.DAY_OF_MONTH)
+                c.set(Calendar.DAY_OF_MONTH, 1)
+                c.add(Calendar.MONTH, k)
+                c.set(Calendar.DAY_OF_MONTH, minOf(day, c.getActualMaximum(Calendar.DAY_OF_MONTH)))
+            }
+            else -> return base
+        }
+        return c.timeInMillis
+    }
+
+    /** Tekrarlı hatırlatıcıda now'dan sonraki ilk zaman; tekrarsızda kendisi. */
+    fun nextTime(base: Long, repeat: String, now: Long): Long {
+        if (base <= 0L) return 0L
+        val approx = FIXED[repeat] ?: when (repeat) {
+            "1d" -> 86_400_000L
+            "1w" -> 604_800_000L
+            "1M" -> 2_592_000_000L
+            else -> return base
+        }
+        if (base > now) return base
+        var k = maxOf(0L, (now - base) / approx - 1).toInt()
+        var guard = 0
+        while (occAt(base, repeat, k) <= now && guard < 10_000) { k++; guard++ }
+        return occAt(base, repeat, k)
     }
 
     private fun pendingIntent(ctx: Context, id: String, title: String?, note: String?): PendingIntent {
