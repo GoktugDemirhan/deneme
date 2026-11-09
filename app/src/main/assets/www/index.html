@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cüzdanım">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Cüzdanım</title>
+<style>
+:root{
+  --bg:#f4f6f5; --card:#fff; --ink:#15201d; --mute:#65736f; --line:#e3e8e6;
+  --pri:#0f766e; --pri2:#ccebe7; --ok:#15803d; --warn:#b45309; --bad:#b91c1c;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0d1312; --card:#151d1b; --ink:#e7efec; --mute:#93a39e; --line:#24302d; --pri:#2dd4bf; --pri2:#123a35; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171;}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 12px) 16px 8px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:20px;margin:0}
+header small{color:var(--mute)}
+main{padding:0 14px calc(90px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav button{flex:1;background:none;border:0;color:var(--mute);padding:8px 2px 10px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--pri);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0}
+.card h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.stat .l{font-size:12px;color:var(--mute)}
+.stat .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.pos{color:var(--ok)} .neg{color:var(--bad)} .wrn{color:var(--warn)}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .grow{flex:1;min-width:0}
+.row .t{font-weight:500;overflow-wrap:anywhere}
+.row .s{font-size:12px;color:var(--mute)}
+.amt{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px}
+@media (prefers-color-scheme:dark){.btn{color:#04201c}}
+.btn.ghost{background:var(--pri2);color:var(--pri)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.icon{background:none;border:0;color:var(--mute);padding:6px;font-size:18px;line-height:1}
+.chk{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);background:none;flex:none;display:grid;place-items:center;color:#fff;font-size:14px}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.done .t{text-decoration:line-through;color:var(--mute)}
+.pill{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--pri2);color:var(--pri);white-space:nowrap}
+.pill.h{background:#fde2e2;color:#b91c1c} .pill.m{background:#fdf0d5;color:#92400e}
+@media (prefers-color-scheme:dark){.pill.h{background:#3b1414;color:#fca5a5}.pill.m{background:#3a2a0c;color:#fcd34d}}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--pri);border-radius:99px}
+.seg{display:flex;background:var(--line);border-radius:10px;padding:3px;gap:3px;margin:8px 0}
+.seg button{flex:1;border:0;background:none;padding:7px;border-radius:8px;color:var(--mute);font-size:13px}
+.seg button.on{background:var(--card);color:var(--ink);font-weight:600}
+.empty{color:var(--mute);text-align:center;padding:18px 6px;font-size:14px}
+.fab{position:fixed;right:18px;bottom:calc(78px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;background:var(--pri);color:#fff;border:0;font-size:28px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:6}
+@media (prefers-color-scheme:dark){.fab{color:#04201c}}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10;display:none;align-items:flex-end;justify-content:center}
+.sheet-bg.open{display:flex}
+.sheet{background:var(--card);width:100%;max-width:720px;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+.sheet h3{margin:0 0 12px}
+label{display:block;font-size:12px;color:var(--mute);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+.actions{display:flex;gap:8px;margin-top:16px}
+.actions .btn{flex:1}
+.note{font-size:12px;color:var(--mute)}
+.tip{border-left:4px solid var(--pri);padding:8px 10px;background:var(--pri2);border-radius:8px;margin:8px 0;font-size:14px}
+.tip.w{border-color:var(--warn);background:rgba(245,158,11,.12)}
+.tip.b{border-color:var(--bad);background:rgba(239,68,68,.12)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + env(safe-area-inset-bottom));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:20;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{padding:6px 0;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<header>
+  <div><h1 id="title">Özet</h1><small id="subtitle"></small></div>
+  <button class="icon" id="btnSettings" aria-label="Ayarlar">⚙️</button>
+</header>
+<main id="view"></main>
+<button class="fab" id="fab" aria-label="Ekle">+</button>
+<nav id="nav"></nav>
+<div class="sheet-bg" id="sheetBg"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================== Veri ================== */
+const KEY = 'cuzdan.v1';
+const DEF = {
+  todos: [], expenses: [], installments: [], recurring: [],
+  settings: { income: 0 }
+};
+let S;
+try { S = Object.assign(structuredClone(DEF), JSON.parse(localStorage.getItem(KEY) || '{}')); }
+catch (e) { S = structuredClone(DEF); }
+S.settings = Object.assign({}, DEF.settings, S.settings);
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast('Kaydedilemedi: depolama kapalı'); } }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+const CATS = ['Market','Yeme-içme','Ulaşım','Fatura','Kira','Sağlık','Giyim','Eğlence','Eğitim','Diğer'];
+const tl = n => (isFinite(n)?n:0).toLocaleString('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:0});
+const tl2 = n => (isFinite(n)?n:0).toLocaleString('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:2});
+const num = (n,d=2) => (isFinite(n)?n:0).toLocaleString('tr-TR',{maximumFractionDigits:d});
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = s => document.querySelector(s);
+
+/* ================== Tarih yardımcıları ================== */
+const today = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+const ym = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+const thisYM = () => ym(new Date());
+const monthDiff = (a,b) => { const [ay,am]=a.split('-').map(Number), [by,bm]=b.split('-').map(Number); return (by-ay)*12+(bm-am); };
+const addMonths = (ymStr,k) => { const [y,m]=ymStr.split('-').map(Number); return ym(new Date(y,m-1+k,1)); };
+const dueDate = (ymStr,day) => { const [y,m]=ymStr.split('-').map(Number); const last=new Date(y,m,0).getDate(); return new Date(y,m-1,Math.min(day,last)); };
+const fmtDate = d => d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+const monthName = ymStr => { const [y,m]=ymStr.split('-').map(Number); return new Date(y,m-1,1).toLocaleDateString('tr-TR',{month:'long',year:'numeric'}); };
+
+/* Taksit: ay k (0..n-1) aktif mi? */
+function instIndex(it, ymStr){ const k = monthDiff(it.start, ymStr); return (k>=0 && k<it.count) ? k : -1; }
+const instMonthly = it => it.total/it.count;
+const instPaidCount = it => (it.paid||[]).length;
+const instRemaining = it => instMonthly(it) * Math.max(0, it.count - instPaidCount(it));
+
+/* Bu ayın sabit yükleri */
+function monthObligations(ymStr){
+  const items = [];
+  S.installments.forEach(it=>{ const k=instIndex(it,ymStr); if(k>=0) items.push({kind:'inst', ref:it, name:it.name, amount:instMonthly(it), day:it.day, sub:`Taksit ${k+1}/${it.count}`, paid:(it.paid||[]).includes(ymStr)}); });
+  S.recurring.forEach(r=>{ items.push({kind:'rec', ref:r, name:r.name, amount:+r.amount, day:r.day, sub:r.category||'Düzenli ödeme', paid:(r.paid||[]).includes(ymStr)}); });
+  return items.sort((a,b)=>a.day-b.day);
+}
+function monthSpent(ymStr){ return S.expenses.filter(e=>e.date.slice(0,7)===ymStr).reduce((s,e)=>s+ +e.amount,0); }
+function avgVariable(){
+  // son 3 ayın değişken harcama ortalaması (veri olan aylar)
+  const cur = thisYM(); const vals=[];
+  for(let k=0;k<3;k++){ const m=addMonths(cur,-k); const v=monthSpent(m); if(v>0||k===0) vals.push(v); }
+  return vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+}
+
+/* ================== UI çatı ================== */
+const TABS = [
+  {id:'ozet', name:'Özet', icon:'<path d="M3 13h8V3H3zm10 8h8V11h-8zM3 21h8v-6H3zm10-18v6h8V3z"/>'},
+  {id:'todo', name:'Yapılacak', icon:'<path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>'},
+  {id:'harcama', name:'Harcama', icon:'<path d="M21 7H3V5h18zm0 4H3v8h18zm-4 6h-3v-2h3z"/>'},
+  {id:'odeme', name:'Ödemeler', icon:'<path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V9h14z"/>'}
+];
+let tab = (location.hash||'').slice(1); if(!TABS.find(t=>t.id===tab)) tab='ozet';
+let sub = { odeme:'taksit', harcama:'liste', todo:'acik' };
+
+function renderNav(){
+  $('#nav').innerHTML = TABS.map(t=>`<button data-tab="${t.id}" class="${t.id===tab?'on':''}"><svg viewBox="0 0 24 24" fill="currentColor">${t.icon}</svg>${t.name}</button>`).join('');
+}
+$('#nav').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; tab=b.dataset.tab; try{history.replaceState(null,'','#'+tab);}catch(_){} render(); window.scrollTo(0,0); });
+
+function render(){
+  renderNav();
+  const t = TABS.find(x=>x.id===tab);
+  $('#title').textContent = t.id==='ozet' ? 'Cüzdanım' : t.name;
+  $('#subtitle').textContent = monthName(thisYM());
+  $('#fab').style.display = (tab==='ozet') ? 'none' : '';
+  ({ozet:vOzet, todo:vTodo, harcama:vHarcama, odeme:vOdeme})[tab]();
+}
+
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* Alt sayfa (form) */
+function openSheet(html, onSubmit){
+  $('#sheet').innerHTML = html; $('#sheetBg').classList.add('open');
+  const f = $('#sheet form');
+  if(f) f.addEventListener('submit',e=>{ e.preventDefault(); const data=Object.fromEntries(new FormData(f)); if(onSubmit(data)!==false){ closeSheet(); save(); render(); } });
+  $('#sheet').querySelectorAll('[data-close]').forEach(b=>b.onclick=closeSheet);
+  const first=$('#sheet input:not([type=hidden]),#sheet select'); if(first) first.focus();
+}
+function closeSheet(){ $('#sheetBg').classList.remove('open'); }
+$('#sheetBg').addEventListener('click',e=>{ if(e.target.id==='sheetBg') closeSheet(); });
+
+function confirmSheet(msg, fn){
+  openSheet(`<h3>${esc(msg)}</h3><div class="actions"><button class="btn ghost" data-close>Vazgeç</button><button class="btn" id="cOk" style="background:var(--bad);color:#fff">Sil</button></div>`);
+  $('#cOk').onclick=()=>{ fn(); closeSheet(); save(); render(); };
+}
+
+/* ================== ÖZET ================== */
+function vOzet(){
+  const m = thisYM(), inc = +S.settings.income||0;
+  const obl = monthObligations(m);
+  const oblTotal = obl.reduce((s,o)=>s+o.amount,0);
+  const spent = monthSpent(m);
+  const left = inc - oblTotal - spent;
+  const openTodos = S.todos.filter(t=>!t.done);
+  const now = today(), in7 = new Date(+now+7*864e5);
+  const upcoming = [];
+  [m, addMonths(m,1)].forEach(mm=>monthObligations(mm).forEach(o=>{ const d=dueDate(mm,o.day); if(!o.paid && d>=now && d<=in7) upcoming.push({...o,date:d,ym:mm}); }));
+  // gecikmiş
+  const overdue = obl.filter(o=>!o.paid && dueDate(m,o.day)<now);
+  // kategori dağılımı
+  const byCat = {}; S.expenses.filter(e=>e.date.slice(0,7)===m).forEach(e=>byCat[e.category]=(byCat[e.category]||0)+ +e.amount);
+  const cats = Object.entries(byCat).sort((a,b)=>b[1]-a[1]); const maxC = cats[0]?.[1]||1;
+
+  $('#view').innerHTML = `
+  ${!inc?`<div class="tip w">Önce ⚙️ Ayarlar'dan aylık net gelirini gir; kalan bütçe buna göre hesaplanır.</div>`:''}
+  <div class="grid2" style="margin-top:6px">
+    <div class="stat"><div class="l">Aylık gelir</div><div class="v">${tl(inc)}</div></div>
+    <div class="stat"><div class="l">Ay sonu kalan (tahmini)</div><div class="v ${left<0?'neg':'pos'}">${tl(left)}</div></div>
+    <div class="stat"><div class="l">Taksit + düzenli</div><div class="v">${tl(oblTotal)}</div></div>
+    <div class="stat"><div class="l">Bu ay harcanan</div><div class="v">${tl(spent)}</div></div>
+  </div>
+  ${overdue.length?`<div class="card" style="border-color:var(--bad)"><h2 class="neg">Geciken ödemeler</h2>${overdue.map(o=>oblRow(o,m)).join('')}</div>`:''}
+  <div class="card"><h2>Önümüzdeki 7 gün</h2>${upcoming.length?upcoming.map(o=>oblRow(o,o.ym,o.date)).join(''):'<div class="empty">Yaklaşan ödeme yok 🎉</div>'}</div>
+  <div class="card"><h2>Yapılacaklar <button class="btn sm ghost" data-go="todo">Tümü</button></h2>
+    ${openTodos.length? openTodos.slice(0,4).map(todoRow).join('') : '<div class="empty">Açık iş yok</div>'}
+  </div>
+  <div class="card"><h2>Bu ay kategoriler</h2>
+    ${cats.length? cats.map(([c,v])=>`<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:14px"><span>${esc(c)}</span><span class="amt">${tl(v)}</span></div><div class="bar"><i style="width:${v/maxC*100}%"></i></div></div>`).join('') : '<div class="empty">Bu ay harcama girilmedi</div>'}
+  </div>`;
+  bindCommon();
+}
+
+function oblRow(o, ymStr, date){
+  const d = date || dueDate(ymStr,o.day);
+  return `<div class="row"><button class="chk ${o.paid?'on':''}" data-pay="${o.kind}:${o.ref.id}:${ymStr}">${o.paid?'✓':''}</button>
+  <div class="grow"><div class="t">${esc(o.name)}</div><div class="s">${fmtDate(d)} · ${esc(o.sub)}</div></div><div class="amt">${tl(o.amount)}</div></div>`;
+}
+function togglePay(spec){
+  const [kind,id,m] = spec.split(':');
+  const list = kind==='inst'?S.installments:S.recurring; const it=list.find(x=>x.id===id); if(!it) return;
+  it.paid = it.paid||[]; const i=it.paid.indexOf(m); if(i>=0) it.paid.splice(i,1); else it.paid.push(m);
+  save(); render(); toast(i>=0?'Ödeme geri alındı':'Ödendi olarak işaretlendi');
+}
+
+function bindCommon(){
+  $('#view').querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>togglePay(b.dataset.pay));
+  $('#view').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{ tab=b.dataset.go; render(); });
+  $('#view').querySelectorAll('[data-todo]').forEach(b=>b.onclick=()=>{ const t=S.todos.find(x=>x.id===b.dataset.todo); t.done=!t.done; t.doneAt=t.done?Date.now():null; save(); render(); });
+}
+
+/* ================== YAPILACAKLAR ================== */
+function todoRow(t){
+  const pr = {h:'<span class="pill h">Yüksek</span>', m:'<span class="pill m">Orta</span>', l:''}[t.priority||'l'];
+  let dueTxt=''; if(t.due){ const d=new Date(t.due+'T00:00'); const late=!t.done && d<today(); dueTxt=`<span class="${late?'neg':''}">${late?'Gecikti · ':''}${fmtDate(d)}</span>`; }
+  return `<div class="row ${t.done?'done':''}"><button class="chk ${t.done?'on':''}" data-todo="${t.id}">${t.done?'✓':''}</button>
+  <div class="grow" data-edit-todo="${t.id}"><div class="t">${esc(t.text)}</div><div class="s">${dueTxt}${t.note?(dueTxt?' · ':'')+esc(t.note):''}</div></div>${pr}
+  <button class="icon" data-del-todo="${t.id}" aria-label="Sil">🗑</button></div>`;
+}
+function vTodo(){
+  const list = S.todos.filter(t=> sub.todo==='acik'? !t.done : t.done)
+    .sort((a,b)=> sub.todo==='acik' ? (({h:0,m:1,l:2}[a.priority||'l']-({h:0,m:1,l:2}[b.priority||'l'])) || (a.due||'9999').localeCompare(b.due||'9999')) : (b.doneAt||0)-(a.doneAt||0));
+  $('#view').innerHTML = `
+    <div class="seg"><button data-s="acik" class="${sub.todo==='acik'?'on':''}">Açık (${S.todos.filter(t=>!t.done).length})</button><button data-s="bitti" class="${sub.todo==='bitti'?'on':''}">Tamamlanan (${S.todos.filter(t=>t.done).length})</button></div>
+    <div class="card">${list.length?list.map(todoRow).join(''):`<div class="empty">${sub.todo==='acik'?'Yapılacak bir şey yok. + ile ekle.':'Henüz tamamlanan yok.'}</div>`}</div>
+    ${sub.todo==='bitti'&&list.length?'<button class="btn ghost" id="clrDone" style="width:100%">Tamamlananları temizle</button>':''}`;
+  $('#view').querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{ sub.todo=b.dataset.s; render(); });
+  $('#view').querySelectorAll('[data-del-todo]').forEach(b=>b.onclick=()=>confirmSheet('Bu iş silinsin mi?',()=>S.todos=S.todos.filter(x=>x.id!==b.dataset.delTodo)));
+  $('#view').querySelectorAll('[data-edit-todo]').forEach(b=>b.onclick=()=>todoForm(S.todos.find(x=>x.id===b.dataset.editTodo)));
+  const c=$('#clrDone'); if(c) c.onclick=()=>confirmSheet('Tamamlananların hepsi silinsin mi?',()=>S.todos=S.todos.filter(x=>!x.done));
+  bindCommon();
+}
+function todoForm(t){
+  t = t||{};
+  openSheet(`<form><h3>${t.id?'İşi düzenle':'Yeni iş'}</h3>
+    <label>Ne yapılacak?</label><input name="text" required value="${esc(t.text||'')}" placeholder="Örn. Kredi kartı ekstresini kontrol et">
+    <div class="grid2"><div><label>Son tarih</label><input type="date" name="due" value="${esc(t.due||'')}"></div>
+    <div><label>Öncelik</label><select name="priority">${[['l','Düşük'],['m','Orta'],['h','Yüksek']].map(([v,n])=>`<option value="${v}" ${t.priority===v?'selected':''}>${n}</option>`).join('')}</select></div></div>
+    <label>Not</label><input name="note" value="${esc(t.note||'')}">
+    <div class="actions"><button type="button" class="btn ghost" data-close>Vazgeç</button><button class="btn">Kaydet</button></div></form>`,
+  d=>{ if(t.id) Object.assign(t,d); else S.todos.push({id:uid(),done:false,created:Date.now(),...d}); });
+}
+
+/* ================== HARCAMALAR ================== */
+let expMonth = thisYM();
+function vHarcama(){
+  const list = S.expenses.filter(e=>e.date.slice(0,7)===expMonth).sort((a,b)=>b.date.localeCompare(a.date));
+  const total = list.reduce((s,e)=>s+ +e.amount,0);
+  const groups = {}; list.forEach(e=>(groups[e.date]=groups[e.date]||[]).push(e));
+  $('#view').innerHTML = `
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between">
+      <button class="icon" id="pm">‹</button>
+      <div style="text-align:center"><div style="font-weight:600">${monthName(expMonth)}</div><div class="amt" style="font-size:20px">${tl2(total)}</div></div>
+      <button class="icon" id="nm">›</button></div>
+    ${list.length? Object.entries(groups).map(([d,arr])=>`<div class="card"><h2><span>${new Date(d+'T00:00').toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'})}</span><span class="amt">${tl2(arr.reduce((s,e)=>s+ +e.amount,0))}</span></h2>
+      ${arr.map(e=>`<div class="row"><div class="grow" data-edit-exp="${e.id}"><div class="t">${esc(e.note||e.category)}</div><div class="s">${esc(e.category)}</div></div><div class="amt">${tl2(+e.amount)}</div><button class="icon" data-del-exp="${e.id}">🗑</button></div>`).join('')}</div>`).join('')
+    : '<div class="card"><div class="empty">Bu ay harcama yok. + ile ekle.</div></div>'}`;
+  $('#pm').onclick=()=>{ expMonth=addMonths(expMonth,-1); render(); };
+  $('#nm').onclick=()=>{ expMonth=addMonths(expMonth,1); render(); };
+  $('#view').querySelectorAll('[data-del-exp]').forEach(b=>b.onclick=()=>confirmSheet('Harcama silinsin mi?',()=>S.expenses=S.expenses.filter(x=>x.id!==b.dataset.delExp)));
+  $('#view').querySelectorAll('[data-edit-exp]').forEach(b=>b.onclick=()=>expForm(S.expenses.find(x=>x.id===b.dataset.editExp)));
+}
+function expForm(e){
+  e = e||{date:new Date().toISOString().slice(0,10), category:'Market'};
+  openSheet(`<form><h3>${e.id?'Harcamayı düzenle':'Yeni harcama'}</h3>
+    <label>Tutar (₺)</label><input name="amount" type="number" inputmode="decimal" step="0.01" min="0" required value="${esc(e.amount||'')}">
+    <div class="grid2"><div><label>Tarih</label><input type="date" name="date" required value="${esc(e.date)}"></div>
+    <div><label>Kategori</label><select name="category">${CATS.map(c=>`<option ${e.category===c?'selected':''}>${c}</option>`).join('')}</select></div></div>
+    <label>Açıklama</label><input name="note" value="${esc(e.note||'')}" placeholder="Örn. Haftalık market">
+    <div class="actions"><button type="button" class="btn ghost" data-close>Vazgeç</button><button class="btn">Kaydet</button></div></form>`,
+  d=>{ d.amount=+d.amount; if(e.id) Object.assign(e,d); else S.expenses.push({id:uid(),...d}); expMonth=d.date.slice(0,7); });
+}
+
+/* ================== ÖDEMELER (taksit + düzenli) ================== */
+function vOdeme(){
+  const m = thisYM();
+  let body='';
+  if(sub.odeme==='taksit'){
+    const active = S.installments.filter(it=>instPaidCount(it)<it.count);
+    const finished = S.installments.filter(it=>instPaidCount(it)>=it.count);
+    const totalRemain = S.installments.reduce((s,it)=>s+instRemaining(it),0);
+    const monthly = S.installments.filter(it=>instIndex(it,m)>=0).reduce((s,it)=>s+instMonthly(it),0);
+    body = `<div class="grid2"><div class="stat"><div class="l">Bu ay taksit</div><div class="v">${tl(monthly)}</div></div><div class="stat"><div class="l">Kalan toplam borç</div><div class="v">${tl(totalRemain)}</div></div></div>
+    <div class="card">${active.length? active.map(it=>{
+      const pc=instPaidCount(it), k=instIndex(it,m), end=addMonths(it.start,it.count-1);
+      const paidNow=(it.paid||[]).includes(m);
+      return `<div class="row" style="flex-wrap:wrap">
+        ${k>=0?`<button class="chk ${paidNow?'on':''}" data-pay="inst:${it.id}:${m}">${paidNow?'✓':''}</button>`:'<span style="width:24px"></span>'}
+        <div class="grow" data-edit-inst="${it.id}"><div class="t">${esc(it.name)}</div><div class="s">${tl(instMonthly(it))}/ay · her ayın ${it.day}'i · bitiş ${monthName(end)}</div>
+        <div class="bar"><i style="width:${pc/it.count*100}%"></i></div><div class="s">${pc}/${it.count} ödendi · kalan ${tl(instRemaining(it))}</div></div>
+        <button class="icon" data-del-inst="${it.id}">🗑</button></div>`;}).join('') : '<div class="empty">Aktif taksit yok. + ile ekle.</div>'}</div>
+    ${finished.length?`<div class="card"><h2>Biten taksitler</h2>${finished.map(it=>`<div class="row"><div class="grow"><div class="t">${esc(it.name)}</div><div class="s">${tl(it.total)} · ${it.count} taksit</div></div><button class="icon" data-del-inst="${it.id}">🗑</button></div>`).join('')}</div>`:''}`;
+  } else {
+    const total = S.recurring.reduce((s,r)=>s+ +r.amount,0);
+    body = `<div class="stat"><div class="l">Aylık düzenli ödemeler</div><div class="v">${tl(total)}</div></div>
+    <div class="card">${S.recurring.length? [...S.recurring].sort((a,b)=>a.day-b.day).map(r=>{ const p=(r.paid||[]).includes(m);
+      return `<div class="row"><button class="chk ${p?'on':''}" data-pay="rec:${r.id}:${m}">${p?'✓':''}</button>
+      <div class="grow" data-edit-rec="${r.id}"><div class="t">${esc(r.name)}</div><div class="s">Her ayın ${r.day}'i · ${esc(r.category)}</div></div><div class="amt">${tl(+r.amount)}</div><button class="icon" data-del-rec="${r.id}">🗑</button></div>`;}).join('') : '<div class="empty">Kira, fatura, abonelik gibi her ay tekrar eden ödemeleri + ile ekle.</div>'}</div>`;
+  }
+  $('#view').innerHTML = `<div class="seg"><button data-s="taksit" class="${sub.odeme==='taksit'?'on':''}">Taksitler</button><button data-s="duzenli" class="${sub.odeme==='duzenli'?'on':''}">Düzenli ödemeler</button></div>${body}`;
+  $('#view').querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{ sub.odeme=b.dataset.s; render(); });
+  $('#view').querySelectorAll('[data-del-inst]').forEach(b=>b.onclick=()=>confirmSheet('Taksit silinsin mi?',()=>S.installments=S.installments.filter(x=>x.id!==b.dataset.delInst)));
+  $('#view').querySelectorAll('[data-del-rec]').forEach(b=>b.onclick=()=>confirmSheet('Düzenli ödeme silinsin mi?',()=>S.recurring=S.recurring.filter(x=>x.id!==b.dataset.delRec)));
+  $('#view').querySelectorAll('[data-edit-inst]').forEach(b=>b.onclick=()=>instForm(S.installments.find(x=>x.id===b.dataset.editInst)));
+  $('#view').querySelectorAll('[data-edit-rec]').forEach(b=>b.onclick=()=>recForm(S.recurring.find(x=>x.id===b.dataset.editRec)));
+  bindCommon();
+}
+function instForm(it){
+  it = it||{start:thisYM(), day:1, count:6};
+  const pc = it.id? instPaidCount(it) : 0;
+  openSheet(`<form><h3>${it.id?'Taksiti düzenle':'Yeni taksit'}</h3>
+    <label>Ne için?</label><input name="name" required value="${esc(it.name||'')}" placeholder="Örn. Telefon, buzdolabı">
+    <div class="grid2"><div><label>Toplam tutar (₺)</label><input name="total" type="number" inputmode="decimal" step="0.01" min="0" required value="${esc(it.total||'')}"></div>
+    <div><label>Taksit sayısı</label><input name="count" type="number" min="1" max="120" required value="${esc(it.count)}"></div></div>
+    <div class="grid2"><div><label>İlk taksit ayı</label><input name="start" type="month" required value="${esc(it.start)}"></div>
+    <div><label>Ödeme günü</label><input name="day" type="number" min="1" max="31" required value="${esc(it.day)}"></div></div>
+    <label>Şu ana kadar ödenen taksit sayısı</label><input name="paidCount" type="number" min="0" value="${pc}">
+    <p class="note">Aylık taksit = toplam ÷ taksit sayısı. Geçmiş aylardan başlayan bir taksit giriyorsan ödenmiş sayısını yaz.</p>
+    <div class="actions"><button type="button" class="btn ghost" data-close>Vazgeç</button><button class="btn">Kaydet</button></div></form>`,
+  d=>{
+    const obj = {name:d.name,total:+d.total,count:Math.max(1,parseInt(d.count)),start:d.start,day:parseInt(d.day)};
+    const n = Math.min(obj.count, Math.max(0, parseInt(d.paidCount)||0));
+    const paid = Array.from({length:n},(_,k)=>addMonths(obj.start,k));
+    if(it.id) Object.assign(it,obj,{paid}); else S.installments.push({id:uid(),...obj,paid});
+  });
+}
+function recForm(r){
+  r = r||{day:1, category:'Fatura'};
+  openSheet(`<form><h3>${r.id?'Düzenli ödemeyi düzenle':'Yeni düzenli ödeme'}</h3>
+    <label>Adı</label><input name="name" required value="${esc(r.name||'')}" placeholder="Örn. Kira, internet, Netflix">
+    <div class="grid2"><div><label>Aylık tutar (₺)</label><input name="amount" type="number" inputmode="decimal" step="0.01" min="0" required value="${esc(r.amount||'')}"></div>
+    <div><label>Ödeme günü</label><input name="day" type="number" min="1" max="31" required value="${esc(r.day)}"></div></div>
+    <label>Kategori</label><select name="category">${CATS.map(c=>`<option ${r.category===c?'selected':''}>${c}</option>`).join('')}</select>
+    <div class="actions"><button type="button" class="btn ghost" data-close>Vazgeç</button><button class="btn">Kaydet</button></div></form>`,
+  d=>{ d.amount=+d.amount; d.day=parseInt(d.day); if(r.id) Object.assign(r,d); else S.recurring.push({id:uid(),paid:[],...d}); });
+}
+
+/* ================== AYARLAR ================== */
+$('#btnSettings').onclick=()=>{
+  const st=S.settings;
+  openSheet(`<form><h3>Ayarlar</h3>
+    <label>Aylık net gelir (₺)</label><input name="income" type="number" inputmode="decimal" min="0" value="${esc(st.income||'')}">
+    <p class="note">Gelir, Özet'teki "ay sonu kalan" hesabında kullanılır.</p>
+    <div class="actions"><button type="button" class="btn ghost" data-close>Vazgeç</button><button class="btn">Kaydet</button></div>
+    <h3 style="margin-top:24px">Yedekleme</h3>
+    <p class="note">Veriler yalnızca bu telefonda duruyor. Uygulamayı silmeden veya telefon değiştirmeden önce yedek al.</p>
+    <div class="actions"><button type="button" class="btn ghost" id="exp">Yedeği indir</button><button type="button" class="btn ghost" id="cpy">Kopyala</button></div>
+    <label>Yedekten geri yükle (.json)</label><input type="file" id="imp" accept="application/json,.json">
+  </form>`, d=>{ st.income=+d.income||0; });
+  $('#exp').onclick=()=>{ if(window.Android&&Android.shareBackup){ Android.shareBackup(JSON.stringify(S,null,1)); return; } const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='cuzdanim-yedek-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); };
+  $('#cpy').onclick=async()=>{ try{ await navigator.clipboard.writeText(JSON.stringify(S)); toast('Yedek panoya kopyalandı'); }catch(e){ toast('Kopyalanamadı'); } };
+  $('#imp').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; try{ const j=JSON.parse(await f.text()); if(!j.settings) throw 0; S=Object.assign(structuredClone(DEF),j); save(); closeSheet(); render(); toast('Yedek geri yüklendi'); }catch(_){ toast('Geçersiz yedek dosyası'); } };
+};
+
+/* ================== FAB ================== */
+$('#fab').onclick=()=>{
+  if(tab==='todo') todoForm();
+  else if(tab==='harcama') expForm();
+  else if(tab==='odeme') sub.odeme==='taksit'?instForm():recForm();
+};
+
+render();
+// Çevrimdışı çalışma
+if('serviceWorker' in navigator && !window.Android){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){} }
+</script>
+</body>
+</html>
